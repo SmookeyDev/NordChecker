@@ -22,7 +22,6 @@ class Main:
             return {'process': True, 'data': {'email': email, 'password': password, 'expires_at': resp['expires_at']}}
         
         else:
-            print(resp)
             return {'process': False, 'message': resp}
         
     def read(self, filename):
