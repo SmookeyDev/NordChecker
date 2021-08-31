@@ -48,9 +48,9 @@ class App:
             self.data['checked'] += 1
             if resp.get('process') == True:
                 if self.data['use_proxy'] == False:
-                    print(f"\033[92mApproved =>> Email: {data['email']} | Password: {data['password']}\033[00m")
+                    print(f"\033[92mApproved =>> Email: {data['email']} | Password: {data['password']} | Expires At: {data['expires_at']}\033[00m")
                 else:
-                    print(f"\033[92mApproved =>> Email: {data['email']} | Password: {data['password']} ({resp['message']})\033[00m")
+                    print(f"\033[92mApproved =>> Email: {data['email']} | Password: {data['password']} | Expires At: {data['expires_at']} ({resp['message']})\033[00m")
                 self.data['live'] += 1
                 if self.data['save_live'] == True:
                     with open('./live.txt', 'a') as file:
